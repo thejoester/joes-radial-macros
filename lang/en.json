@@ -1,0 +1,49 @@
+{
+	"RADIALMACROS": {
+		"Settings": {
+			"FolderName": {
+				"Name": "Macro Folder",
+				"Hint": "Name of the Macro folder to show in the wheel. Leave blank to use the current hotbar page."
+			},
+			"MiddleClick": {
+				"Name": "Open on Middle-Click",
+				"Hint": "Middle-click the canvas to open the wheel at the cursor."
+			},
+			"Radius": {
+				"Name": "Ring Radius",
+				"Hint": "Distance in pixels from the center to each button."
+			},
+			"ButtonSize": {
+				"Name": "Icon Size",
+				"Hint": "Diameter of each wheel button in pixels."
+			},
+			"SpreadEvenly": {
+				"Name": "Spread Icons Evenly",
+				"Hint": "On: space icons evenly around each ring. Off: pack them next to each other, counter-clockwise from the top."
+			},
+			"ButtonShape": {
+				"Name": "Button Shape",
+				"Hint": "Shape used for all wheel buttons and their images.",
+				"Circle": "Circle",
+				"Square": "Square",
+				"Hex": "Hexagon",
+				"Text": "Text Only"
+			}
+		},
+		"Keybindings": {
+			"OpenWheel": {
+				"Name": "Open Radial Macros",
+				"Hint": "Toggle the macro wheel at the cursor. No key is bound by default."
+			}
+		},
+		"FolderIcon": {
+			"Label": "Wheel Icon",
+			"Hint": "Image shown for this folder's button in the radial macro wheel.",
+			"Pick": "Choose an image"
+		},
+		"Close": "Close",
+		"Back": "Back",
+		"Empty": "No macros here",
+		"FolderNotFound": "Radial Macros: no Macro folder named \"{name}\" was found."
+	}
+}

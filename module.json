@@ -1,0 +1,36 @@
+{
+	"id": "joes-radial-macros",
+	"title": "Joes Radial Macros",
+	"description": "Open a radial menu of your macros at the cursor. Pick a macro folder and fire macros with a click.",
+	"version": "1.0.0",
+	"compatibility": {
+		"minimum": "13",
+		"verified": "14"
+	},
+	"authors": [
+		{
+			"name": "TheJoester",
+			"url": "https://github.com/thejoester/",
+			"discord": "thejoester",
+			"flags": {}
+		}
+	],
+	"esmodules": [
+		"scripts/radial-macros.js"
+	],
+	"styles": [
+		"styles/radial-macros.css"
+	],
+	"languages": [
+		{ "lang": "en", "name": "English", "path": "lang/en.json" }
+	],
+	"url": "https://github.com/thejoester/joes-radial-macros",
+	"manifest": "https://github.com/thejoester/joes-radial-macros/releases/latest/download/module.json",
+	"download": "https://github.com/thejoester/joes-radial-macros/releases/download/1.0.0/joes-radial-macros.zip",
+	"readme": "https://github.com/thejoester/joes-radial-macros#readme",
+	"changelog": "https://github.com/thejoester/joes-radial-macros/releases",
+	"bugs": "https://github.com/thejoester/joes-radial-macros/issues",
+	"flags": {
+		"canUpload": true
+	}
+}
