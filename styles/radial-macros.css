@@ -1,0 +1,193 @@
+/* Radial Macros - ring container, button shapes, labels, theme */
+
+.radial-macros {
+	position: fixed;
+	z-index: 100000;
+	width: 0;
+	height: 0;
+	pointer-events: none; /* only the buttons capture clicks */
+	--rm-radius: 110px;
+	--rm-btn: 56px;
+	--rm-hub: 44px;
+	animation: rm-in 120ms ease-out;
+}
+
+.radial-macros.rm-closing {
+	animation: rm-out 120ms ease-in forwards;
+}
+
+@keyframes rm-in {
+	from { opacity: 0; transform: scale(0.85); }
+	to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rm-out {
+	from { opacity: 1; transform: scale(1); }
+	to   { opacity: 0; transform: scale(0.85); }
+}
+
+/* Center hub (close / back) */
+.radial-macros .rm-hub {
+	position: absolute;
+	pointer-events: auto;
+	width: var(--rm-hub);
+	height: var(--rm-hub);
+	left: calc(var(--rm-hub) / -2);
+	top: calc(var(--rm-hub) / -2);
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.35);
+	background: rgba(20, 20, 24, 0.9);
+	color: #fff;
+	font-size: 1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	transition: transform 80ms ease-out, background 80ms ease-out;
+}
+
+.radial-macros .rm-hub:hover {
+	transform: scale(1.12);
+	background: rgba(40, 40, 48, 0.95);
+}
+
+.radial-macros .rm-hub-back {
+	border-color: rgba(120, 180, 255, 0.6);
+}
+
+/* Ring buttons: transparent positioning container (never clipped, holds the label) */
+.radial-macros .rm-button {
+	position: absolute;
+	pointer-events: auto;
+	width: var(--rm-btn);
+	height: var(--rm-btn);
+	left: calc(var(--rm-x, 0px) - var(--rm-btn) / 2);
+	top: calc(var(--rm-y, 0px) - var(--rm-btn) / 2);
+	padding: 0;
+	border: none;
+	background: none;
+	cursor: pointer;
+	overflow: visible;
+	transition: transform 90ms ease-out;
+}
+
+/* Inner wrapper carries the border/background/shape and clips the image */
+.radial-macros .rm-shape {
+	width: 100%;
+	height: 100%;
+	border: 2px solid rgba(255, 255, 255, 0.35);
+	background: rgba(20, 20, 24, 0.9);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	overflow: hidden;
+	transition: border-color 90ms ease-out;
+}
+
+.radial-macros .rm-button:hover {
+	transform: scale(1.15);
+	z-index: 2;
+}
+
+.radial-macros .rm-button:hover .rm-shape {
+	border-color: #ffcc66;
+}
+
+.radial-macros .rm-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.radial-macros .rm-folder .rm-shape {
+	border-color: rgba(120, 180, 255, 0.7);
+}
+
+/* Hover label */
+.radial-macros .rm-label {
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 8px);
+	transform: translateX(-50%);
+	white-space: nowrap;
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: #000;
+	background-image: url("../assets/label-3.webp");
+	background-position: center;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	padding: 10px 24px;
+	opacity: 0;
+	transition: opacity 90ms ease-out;
+	pointer-events: none;
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.radial-macros .rm-button:hover .rm-label {
+	opacity: 1;
+}
+
+.radial-macros .rm-empty {
+	position: absolute;
+	left: 50%;
+	top: calc(var(--rm-hub) / 2 + 8px);
+	transform: translateX(-50%);
+	white-space: nowrap;
+	color: #fff;
+	background: rgba(10, 10, 14, 0.9);
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 0.8rem;
+	pointer-events: none;
+}
+
+/* Button shapes (applied to the inner shape wrapper + its image, never the button) */
+.radial-macros.shape-circle .rm-shape,
+.radial-macros.shape-circle .rm-img {
+	border-radius: 50%;
+}
+
+.radial-macros.shape-square .rm-shape,
+.radial-macros.shape-square .rm-img {
+	border-radius: 8px;
+}
+
+.radial-macros.shape-hex .rm-shape,
+.radial-macros.shape-hex .rm-img {
+	border-radius: 0;
+	clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+}
+
+/* Text Only: no icon graphic; the name is shown centered in the hover-label style */
+.radial-macros.shape-text .rm-shape {
+	display: none;
+}
+
+.radial-macros.shape-text .rm-label {
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 1;
+	pointer-events: auto; /* the banner is the clickable target; clicks bubble to the button */
+}
+
+/* Light theme overrides */
+@media (prefers-color-scheme: light) {
+	.radial-macros .rm-hub,
+	.radial-macros .rm-shape {
+		background: rgba(245, 245, 248, 0.95);
+		border-color: rgba(0, 0, 0, 0.35);
+	}
+	.radial-macros .rm-hub {
+		color: #222;
+	}
+	.radial-macros .rm-empty {
+		background: rgba(250, 250, 252, 0.95);
+		color: #111;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+	}
+}
