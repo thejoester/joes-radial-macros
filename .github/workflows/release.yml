@@ -47,36 +47,6 @@ jobs:
           [ -f CHANGELOG.md ] && FILES="$FILES CHANGELOG.md"
           zip -r dist/joes-radial-macros.zip $FILES
 
-      # --- Build the release body from CHANGELOG.md -------------------------
-
-      - uses: release-flow/keep-a-changelog-action@v3
-        id: changelog
-        with:
-          command: query
-          version: ${{ steps.get_version.outputs.version-without-v }}
-
-      - name: Build release body
-        id: build_body
-        env:
-          CHANGELOG_NOTES: ${{ steps.changelog.outputs.release-notes }}
-          MANIFEST_URL: ${{ steps.set_manifest.outputs.manifest_url }}
-          IS_PRERELEASE: ${{ github.event.release.prerelease }}
-        run: |
-          {
-            echo 'body<<BODYEOF'
-            if [ "$IS_PRERELEASE" = "true" ]; then
-              echo '> [!CAUTION]'
-              echo '> This is a test release, please test in a test world or make a backup before testing!'
-              echo '>'
-              echo "To install this test release use the manifest url \`$MANIFEST_URL\`."
-              echo ''
-            fi
-            echo "$CHANGELOG_NOTES"
-            echo 'BODYEOF'
-          } >> $GITHUB_OUTPUT
-
-      # --- Publish ----------------------------------------------------------
-
       - name: Update Release With Files
         id: create_version_release
         uses: ncipollo/release-action@v1
@@ -86,5 +56,4 @@ jobs:
           draft: ${{ github.event.release.draft }}
           prerelease: ${{ github.event.release.prerelease }}
           name: ${{ steps.get_version.outputs.version-without-v }}
-          body: ${{ steps.build_body.outputs.body }}
           artifacts: "module.json, dist/joes-radial-macros.zip"
