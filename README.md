@@ -1,8 +1,8 @@
 # Joe's Radial Macros
 
-A FoundryVTT module that pops up a radial (wheel) menu of your macros at the cursor. Middle-click the canvas to open the wheel, then click a button to run a macro or open a sub-folder's sub-wheel.
+A FoundryVTT module that pops up a radial menu of your macros at the cursor. Middle-click the canvas to open the wheel, then click a button to run a macro or open a sub-folder's sub-wheel.
 
-Targets FoundryVTT **v13 / v14**. Plain ES module, no dependencies.
+Targets FoundryVTT **v13 / v14**. 
 
 ## Features
 
