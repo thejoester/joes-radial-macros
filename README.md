@@ -28,7 +28,7 @@ Targets FoundryVTT **v13 / v14**. Plain ES module, no dependencies.
 
 ### Text Only
 
-<img src="https://thejoester.com/pix/uploads/flc_gkVLwGRFw8.gif" width="40%">
+<img src="https://thejoester.com/pix/uploads/flc_gkVLwGRFw8.gif" width="60%">
 
 ## Usage
 
