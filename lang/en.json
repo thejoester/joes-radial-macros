@@ -1,9 +1,13 @@
 {
 	"RADIALMACROS": {
 		"Settings": {
-			"FolderName": {
-				"Name": "Macro Folder",
-				"Hint": "Name of the Macro folder to show in the wheel. Leave blank to use the current hotbar page."
+			"GMFolderName": {
+				"Name": "GM Macro Folder",
+				"Hint": "Name of the Macro folder shown in the wheel for GMs. Leave blank to use the current hotbar page."
+			},
+			"PlayerFolderName": {
+				"Name": "Player Macro Folder",
+				"Hint": "Name of the Macro folder shown in the wheel for non-GM players. Leave blank to use the current hotbar page."
 			},
 			"MiddleClick": {
 				"Name": "Open on Middle-Click",
@@ -16,6 +20,10 @@
 			"ButtonSize": {
 				"Name": "Icon Size",
 				"Hint": "Diameter of each wheel button in pixels."
+			},
+			"EdgeMargin": {
+				"Name": "Edge Margin",
+				"Hint": "When the wheel opens within this many pixels of the left or right screen edge, entries are placed on the opposite side (icon rings collapse to a half-wheel; Text Only bows the other way)."
 			},
 			"SpreadEvenly": {
 				"Name": "Spread Icons Evenly",

@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2026-07-18
+## [1.1.0] - 2026-07-25
+
+### Added
+- Separate GM Macro Folder and Player Macro Folder settings (both world-scoped). GMs draw from the GM folder, non-GM players from the Player folder.
+- Edge Margin setting (200-1000px). When the wheel opens within that distance of the left/right screen edge, entries render on the opposite side: icon rings collapse to a half-wheel facing away from the edge, and Text Only bows the other way.
 
 ### Changed
-- Updated `module.json` to update module name
-- updated `README.md` to include images
+- Wheel entries now follow the folder's own sort mode: alphabetical folders sort by name, manual folders keep their drag order. Previously they always used the raw `sort` value, which ignored alphabetical sorting (most visible in Text Only mode).
+- Text Only mode mirrors its banner column to the left of the cursor when opened near the right screen edge (see Edge Margin), so the list stays on screen.
+- The wheel now clamps to the screen by its actual per-side content extent (with a small ~20px buffer and the hub always kept on screen) instead of a symmetric full-ring margin, so it no longer jumps far inward near an edge; the hub stays near the cursor while entries fan out on the open side.
 
 ## [1.0.0] - 2026-07-18
 

@@ -54,9 +54,18 @@ function getFilePicker() {
 
 Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "folderName", {
-		name: L("Settings.FolderName.Name"),
-		hint: L("Settings.FolderName.Hint"),
-		scope: "client",
+		name: L("Settings.GMFolderName.Name"),
+		hint: L("Settings.GMFolderName.Hint"),
+		scope: "world",
+		config: true,
+		type: String,
+		default: ""
+	});
+
+	game.settings.register(MODULE_ID, "playerFolderName", {
+		name: L("Settings.PlayerFolderName.Name"),
+		hint: L("Settings.PlayerFolderName.Hint"),
+		scope: "world",
 		config: true,
 		type: String,
 		default: ""
@@ -104,6 +113,16 @@ Hooks.once("init", () => {
 		type: Number,
 		default: 56,
 		range: { min: 32, max: 96, step: 2 }
+	});
+
+	game.settings.register(MODULE_ID, "edgeMargin", {
+		name: L("Settings.EdgeMargin.Name"),
+		hint: L("Settings.EdgeMargin.Hint"),
+		scope: "client",
+		config: true,
+		type: Number,
+		default: 200,
+		range: { min: 200, max: 1000, step: 10 }
 	});
 
 	game.settings.register(MODULE_ID, "spreadEvenly", {
@@ -189,7 +208,9 @@ function getEntries(folder) {
 	let entries = [];
 
 	if (!folder) {
-		const name = (getSetting("folderName") ?? "").trim();
+		// GMs use the GM Macro Folder; everyone else uses the Player Macro Folder.
+		const key = game.user.isGM ? "folderName" : "playerFolderName";
+		const name = (getSetting(key) ?? "").trim();
 		if (!name) {
 			return getHotbarEntries();
 		}
@@ -224,9 +245,14 @@ function getEntries(folder) {
 		});
 	}
 
-	// Folders keep their child order, macros keep theirs; both already added in sort order.
+	// Folders first, then macros. Within each group honor the folder's own sort mode:
+	// "a" = alphabetical by name, anything else ("m") = manual drag order via `sort`.
+	// Relying on `sort` alone is wrong for alphabetical folders, since Foundry sorts
+	// those by name at display time without rewriting each document's `sort` value.
+	const alpha = folder.sorting === "a";
 	entries.sort((a, b) => {
 		if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
+		if (alpha) return a.name.localeCompare(b.name, undefined, { numeric: true });
 		const sa = a.type === "folder" ? (a.folder.sort ?? 0) : (a.macro.sort ?? 0);
 		const sb = b.type === "folder" ? (b.folder.sort ?? 0) : (b.macro.sort ?? 0);
 		return sa - sb;
@@ -320,16 +346,27 @@ class RadialWheel {
 		const bow = this.radius; // max horizontal distance of the bulge (bounded, count-independent)
 		const xBase = 40; // keep the middle banners clear of the center hub
 
+		// Bow right of the hub, but flip to the left when the cursor is near the right
+		// edge (within the Edge Margin setting) so the column has room on screen.
+		const edge = getSetting("edgeMargin");
+		const side = (window.innerWidth - this.originX) <= edge ? -1 : 1;
+
 		const positions = [];
+		const bounds = { left: 0, right: 0, top: 0, bottom: 0 };
 		for (let i = 0; i < n; i++) {
 			const y = -yMax + i * rowH; // top -> bottom
 			const t = yMax > 0 ? y / yMax : 0; // -1..1 along the column
-			const x = xBase + bow * (1 - t * t); // parabola: farthest right at the middle
+			const x = side * (xBase + bow * (1 - t * t)); // parabola: farthest out at the middle
 			positions.push({ entry: entries[i], x, y });
+			const hw = widths[i] / 2, hh = rowH / 2;
+			bounds.left = Math.max(bounds.left, -(x - hw));
+			bounds.right = Math.max(bounds.right, x + hw);
+			bounds.top = Math.max(bounds.top, -(y - hh));
+			bounds.bottom = Math.max(bounds.bottom, y + hh);
 		}
 		// Clamp margin must cover the rightmost banner edge and the vertical extent.
 		const outerRadius = Math.max(xBase + bow + maxW / 2, yMax + rowH);
-		return { positions, outerRadius };
+		return { positions, outerRadius, bounds };
 	}
 
 	// Distribute entries across one or more concentric rings so buttons never crowd.
@@ -351,52 +388,85 @@ class RadialWheel {
 
 		const spread = getSetting("spreadEvenly");
 
+		// Near a single left/right screen edge, collapse the full ring to the semicircle
+		// facing away from that edge so every button stays on screen. Centered at the top
+		// (-90deg) for a full wheel, west (180deg) near the right edge, east (0deg) near the
+		// left edge. If the cursor is near both edges (a very narrow window) stay full.
+		const edge = getSetting("edgeMargin");
+		const nearRight = (window.innerWidth - this.originX) <= edge;
+		const nearLeft = this.originX <= edge;
+		const half = (nearRight ? 1 : 0) + (nearLeft ? 1 : 0) === 1;
+		const arcCenter = half ? (nearRight ? 180 : 0) : -90;
+		const arcSpan = half ? 180 : 360;
+
 		const positions = [];
+		const bhalf = BTN / 2;
+		const bounds = { left: bhalf, right: bhalf, top: bhalf, bottom: bhalf };
 		let idx = 0;
 		let ring = 0;
 		let outerRadius = this.radius;
 		while (idx < entries.length) {
 			const r = this.radius + ring * ringStep;
 			outerRadius = r;
-			// In spread mode one slot is the bottom gap, so a ring holds one fewer icon.
-			const cap = ringCapacity(r);
-			const usable = spread ? Math.max(1, cap - 1) : cap;
+			const packedStep = (2 * Math.asin(Math.min(1, minSpacing / (2 * r)))) * (180 / Math.PI);
+
+			// How many buttons fit on this ring's arc.
+			let usable;
+			if (half) {
+				usable = Math.max(1, Math.floor(arcSpan / packedStep) + 1);
+			} else {
+				// In spread mode one slot is the bottom gap, so a ring holds one fewer icon.
+				const cap = ringCapacity(r);
+				usable = spread ? Math.max(1, cap - 1) : cap;
+			}
 			const count = Math.min(entries.length - idx, usable);
 
-			// Spread: even gaps, symmetric about the top, with one slot left empty
-			//   centered at the bottom (so the gap is always at the bottom).
-			// Packed: fixed adjacent spacing, the group centered on the top so any
-			//   leftover gap sits at the bottom (a horseshoe opening downward).
-			const packedStep = (2 * Math.asin(minSpacing / (2 * r))) * (180 / Math.PI);
-			const spreadStep = 360 / (count + 1); // +1 reserves the bottom gap slot
+			const spreadStep = 360 / (count + 1); // +1 reserves the bottom gap slot (full ring)
+			const halfStep = arcSpan / (count + 1); // even fan across the arc, gaps at both ends
 
 			for (let i = 0; i < count; i++) {
-				// Top is -90deg. Spread skips the bottom slot; packed fans out from center.
-				const deg = spread
-					? 90 + (i + 1) * spreadStep
-					: -90 + (i - (count - 1) / 2) * packedStep;
+				// Half wheel: fan across the arc (spread = even, packed = tight from center).
+				// Full wheel: top is -90deg; spread skips the bottom slot, packed fans from center.
+				let deg;
+				if (half) {
+					deg = spread
+						? arcCenter - arcSpan / 2 + (i + 1) * halfStep
+						: arcCenter + (i - (count - 1) / 2) * packedStep;
+				} else {
+					deg = spread
+						? 90 + (i + 1) * spreadStep
+						: -90 + (i - (count - 1) / 2) * packedStep;
+				}
 				const angle = deg * (Math.PI / 180);
-				positions.push({
-					entry: entries[idx++],
-					x: Math.cos(angle) * r,
-					y: Math.sin(angle) * r
-				});
+				const x = Math.cos(angle) * r;
+				const y = Math.sin(angle) * r;
+				positions.push({ entry: entries[idx++], x, y });
+				bounds.left = Math.max(bounds.left, -x + bhalf);
+				bounds.right = Math.max(bounds.right, x + bhalf);
+				bounds.top = Math.max(bounds.top, -y + bhalf);
+				bounds.bottom = Math.max(bounds.bottom, y + bhalf);
 			}
 			ring++;
 		}
-		return { positions, outerRadius };
+		return { positions, outerRadius, bounds };
 	}
 
 	render() {
 		const entries = getEntries(this.currentFolder);
 		this.root.replaceChildren();
 
-		const { positions, outerRadius } = this.layout(entries);
+		const { positions, outerRadius, bounds } = this.layout(entries);
 
-		// Clamp the ring center to the viewport so the full (outer) ring stays visible.
-		const margin = outerRadius + 44;
-		const cx = Math.min(Math.max(this.originX, margin), window.innerWidth - margin);
-		const cy = Math.min(Math.max(this.originY, margin), window.innerHeight - margin);
+		// Clamp the hub so the placed content stays on screen, using the actual per-side
+		// extent (bounds) rather than the full ring radius. This keeps the hub near the
+		// cursor when entries collapse to one side near an edge, with only a small buffer.
+		const BUFFER = 20; // gap kept between content and the screen edge
+		const HUB = 22; // hub is 44px; never let it be clipped even if content is one-sided
+		const b = bounds ?? { left: outerRadius, right: outerRadius, top: outerRadius, bottom: outerRadius };
+		const loX = Math.max(b.left, HUB) + BUFFER, hiX = window.innerWidth - Math.max(b.right, HUB) - BUFFER;
+		const loY = Math.max(b.top, HUB) + BUFFER, hiY = window.innerHeight - Math.max(b.bottom, HUB) - BUFFER;
+		const cx = Math.min(Math.max(this.originX, loX), Math.max(loX, hiX));
+		const cy = Math.min(Math.max(this.originY, loY), Math.max(loY, hiY));
 		this.root.style.left = `${cx}px`;
 		this.root.style.top = `${cy}px`;
 

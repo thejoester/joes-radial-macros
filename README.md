@@ -1,8 +1,8 @@
-# Joe's Radial Macros
+# Joes Radial Macros
 
-A FoundryVTT module that pops up a radial menu of your macros at the cursor. Middle-click the canvas to open the wheel, then click a button to run a macro or open a sub-folder's sub-wheel.
+A FoundryVTT module that pops up a radial (wheel) menu of your macros at the cursor. Middle-click the canvas to open the wheel, then click a button to run a macro or open a sub-folder's sub-wheel.
 
-Targets FoundryVTT **v13 / v14**. 
+Targets FoundryVTT **v13 / v14**. Plain ES module, no dependencies.
 
 ## Features
 
@@ -14,37 +14,23 @@ Targets FoundryVTT **v13 / v14**.
 - **Layout controls** - ring radius, icon size, and even-spread vs. packed arrangement (the gap always sits at the bottom).
 - Left-click runs a macro; right-click opens its sheet.
 
-### Circle Icons
-
-![Circle Icons](https://thejoester.com/pix/uploads/flc_mymLE1pHiT.gif)
-
-### Square Icons
-
-![Square Icons](https://thejoester.com/pix/uploads/flc_xI5pfZSly5.gif)
-
-### Hex Icons
-
-![Hex Icons](https://thejoester.com/pix/uploads/flc_Cd4QxykcGY.gif)
-
-### Text Only
-
-<img src="https://thejoester.com/pix/uploads/flc_gkVLwGRFw8.gif" width="70%">
-
 ## Usage
 
 1. Enable the module in your world.
 2. (Optional) Create a Macro folder, e.g. `Wheel`, and put your macros in it. Sub-folders become sub-wheels.
-3. Open **Settings -> Configure Settings -> Joes Radial Macros** and set **Macro Folder** to that folder's name (leave blank to use the current hotbar page).
+3. Open **Settings -> Configure Settings -> Joes Radial Macros** and set the **GM Macro Folder** and/or **Player Macro Folder** to that folder's name (leave blank to use the current hotbar page). GMs see the GM folder; non-GM players see the Player folder.
 4. Middle-click the canvas to open the wheel.
 
 ## Settings
 
 | Setting | Description |
 |---|---|
-| Macro Folder | Name of the Macro folder to show. Blank = current hotbar page. |
+| GM Macro Folder | Name of the Macro folder shown to GMs. Blank = current hotbar page. |
+| Player Macro Folder | Name of the Macro folder shown to non-GM players. Blank = current hotbar page. |
 | Open on Middle-Click | Middle-click the canvas to open the wheel. |
 | Ring Radius | Distance from the center to the buttons (also controls the Text Only curve depth). |
 | Icon Size | Diameter of each wheel button. |
+| Edge Margin | If the wheel opens within this many pixels of the left/right screen edge, entries render on the opposite side (200-1000px). |
 | Spread Icons Evenly | On: even gaps around each ring. Off: packed, centered on the top (horseshoe). |
 | Button Shape | Circle / Square / Hexagon / Text Only. |
 
