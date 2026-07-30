@@ -1,14 +1,3 @@
-/**
- * Radial Macros
- * A radial menu of macros shown at the cursor.
- *
- * Clean-room implementation from the public feature concept only.
- * No source, assets, or manifest from any protected module is used.
- *
- * Load order: this is the only esmodule. Everything hangs off the `init` and
- * `ready` hooks plus a module-level singleton `activeWheel`.
- */
-
 const MODULE_ID = "joes-radial-macros";
 const MAX_ENTRIES = 48; // safety cap; entries spill across concentric rings
 
@@ -31,9 +20,9 @@ function defaultIconFor(type) {
 	return type === "folder" ? defaultFolderIcon() : defaultMacroIcon();
 }
 
-/* ------------------------------------------------------------------ */
-/*  Small helpers                                                       */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	Small helpers
+========================================================================== */
 
 function L(key, data) {
 	return data ? game.i18n.format(`RADIALMACROS.${key}`, data) : game.i18n.localize(`RADIALMACROS.${key}`);
@@ -48,9 +37,9 @@ function getFilePicker() {
 	return foundry?.applications?.apps?.FilePicker?.implementation ?? globalThis.FilePicker;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Settings + keybinding                                              */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	Settings + keybinding
+========================================================================== */
 
 Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "folderName", {
@@ -82,7 +71,8 @@ Hooks.once("init", () => {
 			circle: L("Settings.ButtonShape.Circle"),
 			square: L("Settings.ButtonShape.Square"),
 			hex: L("Settings.ButtonShape.Hex"),
-			text: L("Settings.ButtonShape.Text")
+			text: L("Settings.ButtonShape.Text"),
+			textbtn: L("Settings.ButtonShape.TextButtons")
 		}
 	});
 
@@ -147,9 +137,9 @@ Hooks.once("init", () => {
 	});
 });
 
-/* ------------------------------------------------------------------ */
-/*  Activation: middle-click on the canvas                            */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	Activation: middle-click on the canvas
+========================================================================== */
 
 // Track the last pointer position so the keybind can open at the cursor.
 let lastPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -196,9 +186,9 @@ function toggleWheelAtCursor() {
 	openWheel(lastPointer.x, lastPointer.y);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Macro source resolution                                           */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	Macro source resolution
+========================================================================== */
 
 /**
  * Resolve the entries to show for a given folder (or the top level when null).
@@ -245,10 +235,7 @@ function getEntries(folder) {
 		});
 	}
 
-	// Folders first, then macros. Within each group honor the folder's own sort mode:
-	// "a" = alphabetical by name, anything else ("m") = manual drag order via `sort`.
-	// Relying on `sort` alone is wrong for alphabetical folders, since Foundry sorts
-	// those by name at display time without rewriting each document's `sort` value.
+	// Folders first, then macros; within each, folder's sort mode ("a" = alpha, else manual `sort`)
 	const alpha = folder.sorting === "a";
 	entries.sort((a, b) => {
 		if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
@@ -275,9 +262,9 @@ function getHotbarEntries() {
 	return entries.slice(0, MAX_ENTRIES);
 }
 
-/* ------------------------------------------------------------------ */
-/*  The wheel                                                          */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	The wheel
+========================================================================== */
 
 let activeWheel = null;
 
@@ -332,19 +319,17 @@ class RadialWheel {
 		return Math.min(ctx.measureText(text).width + 48, 220); // +padding, cap at max-width
 	}
 
-	// Text-only layout: banners are wide, so instead of a full ring they run down the
-	// right-side arc. Banners are spaced by a fixed vertical step >= their height so 
-	// consecutive ones never overlap. The horizontal offset is a parabolic bow whose 
-	// depth is capped by the Ring Radius setting, so adding more macros grows the 
-	// column downward but NOT farther from the center. (spreadEvenly is not used here.)
+	// Text-only layout
 	layoutText(entries) {
 		const n = entries.length;
-		const widths = entries.map((e) => this.measureBanner(e.name));
+		// Folder banners carry a leading icon the canvas measure can't see; pad for it.
+		const widths = entries.map((e) => this.measureBanner(e.name) + (e.type === "folder" ? 22 : 0));
 		const maxW = Math.max(...widths, 0);
-		const rowH = 44; // vertical step: at least one banner height so no vertical overlap
+		const rowH = this.shape === "textbtn" ? 54 : 44; // vertical step: banner height (+5px gap for boxes)
 		const yMax = ((n - 1) / 2) * rowH; // column is centered vertically on the hub
 		const bow = this.radius; // max horizontal distance of the bulge (bounded, count-independent)
-		const xBase = 40; // keep the middle banners clear of the center hub
+		const HUB = 22; // hub radius; every banner must clear it horizontally
+		const xBase = maxW / 2 + HUB + 12; // innermost banner's left edge clears the hub, any count
 
 		// Bow right of the hub, but flip to the left when the cursor is near the right
 		// edge (within the Edge Margin setting) so the column has room on screen.
@@ -372,7 +357,7 @@ class RadialWheel {
 	// Distribute entries across one or more concentric rings so buttons never crowd.
 	// Fills the innermost ring to capacity, then spills outward.
 	layout(entries) {
-		if (this.shape === "text") return this.layoutText(entries);
+		if (this.shape === "text" || this.shape === "textbtn") return this.layoutText(entries);
 
 		const BTN = this.buttonSize; // matches the --rm-btn CSS var set on the root
 		const GAP = 12; // minimum gap between adjacent buttons
@@ -388,10 +373,7 @@ class RadialWheel {
 
 		const spread = getSetting("spreadEvenly");
 
-		// Near a single left/right screen edge, collapse the full ring to the semicircle
-		// facing away from that edge so every button stays on screen. Centered at the top
-		// (-90deg) for a full wheel, west (180deg) near the right edge, east (0deg) near the
-		// left edge. If the cursor is near both edges (a very narrow window) stay full.
+		// Near one screen edge, collapse to the semicircle facing away from it (both edges = stay full)
 		const edge = getSetting("edgeMargin");
 		const nearRight = (window.innerWidth - this.originX) <= edge;
 		const nearLeft = this.originX <= edge;
@@ -457,9 +439,7 @@ class RadialWheel {
 
 		const { positions, outerRadius, bounds } = this.layout(entries);
 
-		// Clamp the hub so the placed content stays on screen, using the actual per-side
-		// extent (bounds) rather than the full ring radius. This keeps the hub near the
-		// cursor when entries collapse to one side near an edge, with only a small buffer.
+		// Clamp the hub on screen by per-side content extent, not full ring radius
 		const BUFFER = 20; // gap kept between content and the screen edge
 		const HUB = 22; // hub is 44px; never let it be clipped even if content is one-sided
 		const b = bounds ?? { left: outerRadius, right: outerRadius, top: outerRadius, bottom: outerRadius };
@@ -523,7 +503,12 @@ class RadialWheel {
 
 			const label = document.createElement("span");
 			label.className = "rm-label";
-			label.textContent = entry.name;
+			if (entry.type === "folder") {
+				const esc = foundry.utils.escapeHTML?.(entry.name) ?? entry.name;
+				label.innerHTML = `<i class="fas fa-folder"></i>${esc}`;
+			} else {
+				label.textContent = entry.name;
+			}
 			btn.appendChild(label);
 
 			btn.addEventListener("click", (ev) => {
@@ -575,9 +560,9 @@ function openWheel(x, y) {
 	activeWheel.open();
 }
 
-/* ------------------------------------------------------------------ */
-/*  Folder config: image picker for Macro folders                     */
-/* ------------------------------------------------------------------ */
+/* ==========================================================================
+	Folder config: image picker for Macro folders
+========================================================================== */
 
 Hooks.on("renderFolderConfig", (app, element) => {
 	const folder = app.document;

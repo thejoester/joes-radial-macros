@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-07-29
+
+### Added
+- Folder entries now show a leading hollow folder icon in their label, so folders read distinct from macros, most notably in Text Only mode where the icon graphic is hidden.
+- New "Text Only - Buttons" button shape (the original Text Only is now "Text Only - Parchment"). Entries render as plain rounded boxes with a semi-transparent dark background and white text instead of the parchment banner; folder boxes use a hollow white folder glyph.
+
+### Fixed
+- Back / close hub button no longer sits hidden behind the name banners in a folder with only a couple of macros; the innermost banner now always clears the center hub.
+
 ## [1.1.0] - 2026-07-25
 
 ### Added

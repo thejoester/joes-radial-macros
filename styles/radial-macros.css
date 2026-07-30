@@ -99,8 +99,15 @@
 	display: block;
 }
 
+/* outline for folder icons 
 .radial-macros .rm-folder .rm-shape {
 	border-color: rgba(120, 180, 255, 0.7);
+}
+*/
+
+/* Folder glyph */
+.radial-macros .rm-folder .rm-label i {
+	color: #a55102;
 }
 
 /* Hover label */
@@ -125,6 +132,10 @@
 	max-width: 220px;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.radial-macros .rm-label i {
+	margin-right: 6px;
 }
 
 .radial-macros .rm-button:hover .rm-label {
@@ -162,17 +173,38 @@
 	clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
 }
 
-/* Text Only: no icon graphic; the name is shown centered in the hover-label style */
-.radial-macros.shape-text .rm-shape {
+/* Text Only (Parchment + Buttons): no icon graphic; the name is centered in place of the button */
+.radial-macros.shape-text .rm-shape,
+.radial-macros.shape-textbtn .rm-shape {
 	display: none;
 }
 
-.radial-macros.shape-text .rm-label {
+.radial-macros.shape-text .rm-label,
+.radial-macros.shape-textbtn .rm-label {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 	opacity: 1;
 	pointer-events: auto; /* the banner is the clickable target; clicks bubble to the button */
+}
+
+/* Text Only - Buttons: plain rounded box instead of the parchment banner */
+.radial-macros.shape-textbtn .rm-label {
+	background-image: none;
+	background-color: rgba(20, 20, 24, 0.8);
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	border-radius: 8px;
+	color: #fff;
+}
+
+/* Hollow (regular-weight) white folder glyph in text-buttons mode */
+.radial-macros.shape-textbtn .rm-folder .rm-label i {
+	font-weight: 400;
+	color: #fff;
+}
+
+.radial-macros.shape-textbtn .rm-button:hover .rm-label {
+	border-color: #ffcc66;
 }
 
 /* Light theme overrides */

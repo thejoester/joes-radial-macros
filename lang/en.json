@@ -35,7 +35,8 @@
 				"Circle": "Circle",
 				"Square": "Square",
 				"Hex": "Hexagon",
-				"Text": "Text Only"
+				"Text": "Text Only - Parchment",
+				"TextButtons": "Text Only - Buttons"
 			}
 		},
 		"Keybindings": {
