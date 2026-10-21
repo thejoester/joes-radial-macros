@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-21
+
+### Added
+- The GM Macro Folder and Player Macro Folder settings now accept a Folder UUID as well as a folder name. Paste a compendium folder UUID (e.g. `Compendium.my-pack.macros.Folder.xxxxxxxx`) to drive the wheel straight from a compendium: its sub-folders and macros appear in the wheel, left-click runs a macro and right-click opens its sheet, no import needed. A world folder UUID works too, handy when two folders share a name.
+- Macro and folder icons carry over when the wheel is driven from a compendium: macro images show on their buttons, and a folder's custom Wheel Icon (set in the folder config, which is available inside a compendium too) appears just as it does for world folders.
+
 ## [1.2.0] - 2026-07-29
 
 ### Added

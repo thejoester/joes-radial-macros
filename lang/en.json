@@ -3,11 +3,11 @@
 		"Settings": {
 			"GMFolderName": {
 				"Name": "GM Macro Folder",
-				"Hint": "Name of the Macro folder shown in the wheel for GMs. Leave blank to use the current hotbar page."
+				"Hint": "Macro folder shown in the wheel for GMs. Enter a folder name, or paste a Folder UUID to point at a folder in a compendium (e.g. Compendium.my-pack.macros.Folder.xxxxxxxx). Leave blank to use the current hotbar page."
 			},
 			"PlayerFolderName": {
 				"Name": "Player Macro Folder",
-				"Hint": "Name of the Macro folder shown in the wheel for non-GM players. Leave blank to use the current hotbar page."
+				"Hint": "Macro folder shown in the wheel for non-GM players. Enter a folder name, or paste a Folder UUID to point at a folder in a compendium (e.g. Compendium.my-pack.macros.Folder.xxxxxxxx). Leave blank to use the current hotbar page."
 			},
 			"MiddleClick": {
 				"Name": "Open on Middle-Click",
@@ -53,6 +53,6 @@
 		"Close": "Close",
 		"Back": "Back",
 		"Empty": "No macros here",
-		"FolderNotFound": "Radial Macros: no Macro folder named \"{name}\" was found."
+		"FolderNotFound": "Radial Macros: no Macro folder matching \"{name}\" was found."
 	}
 }

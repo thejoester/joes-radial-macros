@@ -190,26 +190,39 @@ function toggleWheelAtCursor() {
 	Macro source resolution
 ========================================================================== */
 
-/**
- * Resolve the entries to show for a given folder (or the top level when null).
- * Returns an array of { type:"folder"|"macro", ...display }.
- */
-function getEntries(folder) {
+//	Resolve the entries to show for a given folder (or the top level when null).
+// 	Returns an array of { type:"folder"|"macro", ...display }.
+// Resolve a GM/Player folder setting that is either a Macro folder name or a Folder UUID,
+// world ("Folder.<id>") or compendium ("Compendium.<pkg>.<pack>.Folder.<id>").
+async function resolveFolderSetting(value) {
+	if (/^(Compendium\.|Folder\.)/.test(value)) {
+		let doc = null;
+		try { doc = await fromUuid(value); } catch (_) { doc = null; }
+		if (doc?.documentName !== "Folder") {
+			ui.notifications.warn(L("FolderNotFound", { name: value }));
+			return null;
+		}
+		return doc;
+	}
+	const folder = game.folders.find((f) => f.type === "Macro" && f.name === value);
+	if (!folder) ui.notifications.warn(L("FolderNotFound", { name: value }));
+	return folder ?? null;
+}
+
+async function getEntries(folder) {
 	let entries = [];
 
 	if (!folder) {
 		// GMs use the GM Macro Folder; everyone else uses the Player Macro Folder.
 		const key = game.user.isGM ? "folderName" : "playerFolderName";
-		const name = (getSetting(key) ?? "").trim();
-		if (!name) {
-			return getHotbarEntries();
-		}
-		folder = game.folders.find((f) => f.type === "Macro" && f.name === name);
-		if (!folder) {
-			ui.notifications.warn(L("FolderNotFound", { name }));
-			return [];
-		}
+		const value = (getSetting(key) ?? "").trim();
+		if (!value) return getHotbarEntries();
+		folder = await resolveFolderSetting(value);
+		if (!folder) return [];
 	}
+
+	// Compendium folders expose index entries (plain objects), world folders live documents.
+	const pack = folder.compendium ?? null;
 
 	// Sub-folders first.
 	const subFolders = (folder.children ?? []).map((c) => c.folder ?? c).filter((f) => f);
@@ -219,20 +232,41 @@ function getEntries(folder) {
 			id: sub.id,
 			folder: sub,
 			name: sub.name,
-			img: sub.getFlag(MODULE_ID, "icon") || defaultFolderIcon()
+			sort: sub.sort ?? 0,
+			// Folder docs keep their icon flag in a compendium too, so read it either way.
+			img: sub.getFlag?.(MODULE_ID, "icon") || defaultFolderIcon()
 		});
 	}
 
-	// Then macros the user can execute.
-	const macros = (folder.contents ?? []).filter((m) => m?.canUserExecute?.(game.user) ?? m?.canExecute ?? true);
-	for (const macro of macros) {
-		entries.push({
-			type: "macro",
-			id: macro.id,
-			macro,
-			name: macro.name,
-			img: macro.img
-		});
+	// Then macros. Compendium entries carry a UUID to load on click; world entries the live doc.
+	if (pack) {
+		// Only a Macro pack yields runnable entries; other pack types contribute folders only.
+		if (pack.documentName === "Macro") {
+			// img is not a default index field in every build; request it so icons resolve.
+			try { await pack.getIndex({ fields: ["img", "sort"] }); } catch (_) {}
+			for (const idx of folder.contents ?? []) {
+				entries.push({
+					type: "macro",
+					id: idx._id,
+					uuid: `${pack.collection}.Macro.${idx._id}`,
+					name: idx.name,
+					sort: idx.sort ?? 0,
+					img: idx.img
+				});
+			}
+		}
+	} else {
+		const macros = (folder.contents ?? []).filter((m) => m?.canUserExecute?.(game.user) ?? m?.canExecute ?? true);
+		for (const macro of macros) {
+			entries.push({
+				type: "macro",
+				id: macro.id,
+				macro,
+				name: macro.name,
+				sort: macro.sort ?? 0,
+				img: macro.img
+			});
+		}
 	}
 
 	// Folders first, then macros; within each, folder's sort mode ("a" = alpha, else manual `sort`)
@@ -240,9 +274,7 @@ function getEntries(folder) {
 	entries.sort((a, b) => {
 		if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
 		if (alpha) return a.name.localeCompare(b.name, undefined, { numeric: true });
-		const sa = a.type === "folder" ? (a.folder.sort ?? 0) : (a.macro.sort ?? 0);
-		const sb = b.type === "folder" ? (b.folder.sort ?? 0) : (b.macro.sort ?? 0);
-		return sa - sb;
+		return (a.sort ?? 0) - (b.sort ?? 0);
 	});
 
 	return entries.slice(0, MAX_ENTRIES);
@@ -433,8 +465,9 @@ class RadialWheel {
 		return { positions, outerRadius, bounds };
 	}
 
-	render() {
-		const entries = getEntries(this.currentFolder);
+	async render() {
+		const entries = await getEntries(this.currentFolder);
+		if (!this.root) return; // wheel closed while entries were loading
 		this.root.replaceChildren();
 
 		const { positions, outerRadius, bounds } = this.layout(entries);
@@ -517,10 +550,11 @@ class RadialWheel {
 			});
 			// Right-click a macro opens its sheet without dismissing.
 			if (entry.type === "macro") {
-				btn.addEventListener("contextmenu", (ev) => {
+				btn.addEventListener("contextmenu", async (ev) => {
 					ev.preventDefault();
 					ev.stopPropagation();
-					entry.macro.sheet?.render(true);
+					const macro = entry.macro ?? (entry.uuid ? await fromUuid(entry.uuid).catch(() => null) : null);
+					macro?.sheet?.render(true);
 				});
 			}
 
@@ -528,13 +562,15 @@ class RadialWheel {
 		});
 	}
 
-	_onEntryClick(entry) {
+	async _onEntryClick(entry) {
 		if (entry.type === "folder") {
 			this.navStack.push(entry.folder);
 			this.render();
 			return;
 		}
-		const macro = game.macros.get(entry.id) ?? entry.macro;
+		// World macros are live; compendium macros load from their UUID on demand.
+		let macro = game.macros.get(entry.id) ?? entry.macro;
+		if (!macro && entry.uuid) macro = await fromUuid(entry.uuid).catch(() => null);
 		this.close();
 		macro?.execute();
 	}
