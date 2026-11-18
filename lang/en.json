@@ -48,7 +48,9 @@
 		"FolderIcon": {
 			"Label": "Wheel Icon",
 			"Hint": "Image shown for this folder's button in the radial macro wheel.",
-			"Pick": "Choose an image"
+			"Pick": "Choose an image",
+			"PackLocked": "Unlock the compendium \"{name}\" before setting folder icons, or the icon won't be saved.",
+			"SaveFailed": "Radial Macros: couldn't save the folder icon. See the console for details."
 		},
 		"Close": "Close",
 		"Back": "Back",

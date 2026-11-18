@@ -248,7 +248,8 @@ async function getEntries(folder) {
 				entries.push({
 					type: "macro",
 					id: idx._id,
-					uuid: `${pack.collection}.Macro.${idx._id}`,
+					// Index entries carry their own uuid; fall back to the full form (needs the Compendium. prefix).
+					uuid: idx.uuid ?? `Compendium.${pack.collection}.Macro.${idx._id}`,
 					name: idx.name,
 					sort: idx.sort ?? 0,
 					img: idx.img
@@ -569,8 +570,9 @@ class RadialWheel {
 			return;
 		}
 		// World macros are live; compendium macros load from their UUID on demand.
-		let macro = game.macros.get(entry.id) ?? entry.macro;
+		let macro = entry.macro ?? null;
 		if (!macro && entry.uuid) macro = await fromUuid(entry.uuid).catch(() => null);
+		if (!macro) macro = game.macros.get(entry.id);
 		this.close();
 		macro?.execute();
 	}
@@ -631,10 +633,22 @@ Hooks.on("renderFolderConfig", (app, element) => {
 	else html.querySelector("form")?.appendChild(group) ?? html.appendChild(group);
 
 	const input = group.querySelector("input");
-	const saveIcon = (value) => {
+	// A compendium folder lives in a pack; a locked pack keeps the in-memory change
+	// but never writes it to disk, so warn instead of failing silently.
+	const pack = folder.compendium ?? null;
+	const saveIcon = async (value) => {
+		if (pack?.locked) {
+			ui.notifications.warn(L("FolderIcon.PackLocked", { name: pack.metadata?.label ?? pack.collection }));
+			return;
+		}
 		const v = (value ?? "").trim();
-		if (v) folder.setFlag(MODULE_ID, "icon", v);
-		else folder.unsetFlag(MODULE_ID, "icon");
+		try {
+			if (v) await folder.setFlag(MODULE_ID, "icon", v);
+			else await folder.unsetFlag(MODULE_ID, "icon");
+		} catch (err) {
+			ui.notifications.error(L("FolderIcon.SaveFailed"));
+			console.error(`${MODULE_ID} | failed to save folder icon`, err);
+		}
 	};
 
 	input.addEventListener("change", () => saveIcon(input.value));
