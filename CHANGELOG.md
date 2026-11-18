@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.3.1] - 2026-11-17
 
+### Changed
+- All wheel appearance and behavior settings (Button Shape, Icon Size, Ring Radius, Edge Margin, Spread Icons Evenly, and Open on Middle-Click) are now per-user preferences instead of per-browser. Your choices follow you from one device to another, and each world keeps its own, so changing a setting in one world no longer changes it in your others. You may need to re-pick your preferences once after updating.
+
 ### Fixed
 - Setting a folder's Wheel Icon on a folder inside a locked compendium no longer looks like it saved and then comes back blank. The icon field now tells you to unlock the compendium first, since a locked pack keeps the change only until you reload. Unlock the pack, set your icons, and they stick across every world.
 

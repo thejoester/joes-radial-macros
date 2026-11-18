@@ -63,7 +63,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "buttonShape", {
 		name: L("Settings.ButtonShape.Name"),
 		hint: L("Settings.ButtonShape.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: String,
 		default: "circle",
@@ -79,7 +79,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "activateOnMiddleClick", {
 		name: L("Settings.MiddleClick.Name"),
 		hint: L("Settings.MiddleClick.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: Boolean,
 		default: true
@@ -88,7 +88,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "radius", {
 		name: L("Settings.Radius.Name"),
 		hint: L("Settings.Radius.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: Number,
 		default: 110,
@@ -98,7 +98,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "buttonSize", {
 		name: L("Settings.ButtonSize.Name"),
 		hint: L("Settings.ButtonSize.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: Number,
 		default: 56,
@@ -108,7 +108,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "edgeMargin", {
 		name: L("Settings.EdgeMargin.Name"),
 		hint: L("Settings.EdgeMargin.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: Number,
 		default: 200,
@@ -118,7 +118,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE_ID, "spreadEvenly", {
 		name: L("Settings.SpreadEvenly.Name"),
 		hint: L("Settings.SpreadEvenly.Hint"),
-		scope: "client",
+		scope: "user",
 		config: true,
 		type: Boolean,
 		default: true
